@@ -87,3 +87,7 @@ python-qt5-bindings:
   osx:
     homebrew:
       packages: []
+google-mock:
+  osx:
+    homebrew:
+      packages: []

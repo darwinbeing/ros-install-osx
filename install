@@ -107,6 +107,11 @@ do_install()
 
   # Get homebrew's opencv3 from a bottle so that we don't have to build it.
   brew install opencv3
+  brew install gazebo
+  brew install gtest
+
+  # Install boost 1.64
+  # brew boost boost-python
 
   # Mock out python and pip so that we get the brewed versions when rosdep and other programs call them.
   # Mock out pip so that we get the brewed pip2 when rosdep calls it to make an installation.
@@ -160,7 +165,9 @@ do_install()
     fi
 
     # Package dependencies.
-    rosdep install --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} -y --as-root pip:no
+    # rosdep install --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} -y --skip-keys "gazebo boost boost-python" --as-root pip:no
+    rosdep install --from-paths . --ignore-src --rosdistro ${ROS_DISTRO} -y --skip-keys gazebo --as-root pip:no
+
   popd
 
   # Clean out or create the install directory.
@@ -182,13 +189,19 @@ do_install()
       -DPYTHON_EXECUTABLE=$(which python2) \
       -DPYTHON_LIBRARY=$(python2 -c "import sys; print sys.prefix")/lib/libpython2.7.dylib \
       -DPYTHON_INCLUDE_DIR=$(python2 -c "import sys; print sys.prefix")/include/python2.7
+
+  PATCHES_DIR=$(pwd)/../patches
+  pushd src/geometry2
+  patch -p1 < ${PATCHES_DIR}/0001-Replaced-deprecated-log-macro-calls.patch
+  popd
+
   catkin build --limit-status-rate 1
 
   echo "Installation successful, please source the ROS workspace:"
   echo
   echo "  source ${ROS_INSTALL_DIR}/setup.bash"
   echo
-  
+
   # Check for SIP if on OSX/macOS 10.11 (El Capitan) or later
   if [[ `sw_vers -productVersion` > "10.10" ]]
   then
